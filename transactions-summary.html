@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transactions & Visual Summary - Personal Finance Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --color-primary: #222222;
+      --color-secondary: #d1d5db;
+      --color-accent: #4f46e5;
+      --color-bg-gradient: linear-gradient(270deg, #667eea, #764ba2, #667eea, #764ba2);
+      --font-family: 'Inter', sans-serif;
+      --border-radius: 20px;
+      --transition-fast: 0.3s ease;
+      --footer-bg: rgba(255 255 255 / 0.1);
+      --footer-text: #e0dbf5;
+      --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    }
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: var(--font-family);
+      background: var(--color-bg-gradient);
+      background-size: 400% 400%;
+      animation: gradientAnimation 15s ease infinite;
+      display: flex;
+      flex-direction: column;
+      color: var(--color-secondary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    header {
+      background: rgba(255 255 255 / 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      box-shadow: var(--shadow-glass);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      user-select: none;
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: 1px;
+      border-radius: 0 0 20px 20px;
+      z-index: 10;
+    }
+    header h1 {
+      margin: 0;
+    }
+    header .btn-back {
+      all: unset;
+      cursor: pointer;
+      background: var(--color-accent);
+      color: white;
+      font-weight: 700;
+      padding: 8px 20px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 6px 14px rgba(79, 70, 229, 0.7);
+      transition: background 0.4s ease;
+      user-select: none;
+      font-size: 1rem;
+    }
+    header .btn-back:hover,
+    header .btn-back:focus {
+      background: #6c63ff;
+      outline: none;
+    }
+    main.container {
+      flex: 1;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 32px 40px;
+      background: rgba(255 255 255 / 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-glass);
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+      user-select: none;
+      color: white;
+    }
+    section.card {
+      background: rgba(255 255 255 / 0.25);
+      border-radius: var(--border-radius);
+      padding: 24px 28px;
+      box-shadow: inset 0 0 40px rgba(255 255 255 / 0.15);
+    }
+    h2 {
+      margin-top: 0;
+      margin-bottom: 24px;
+      font-weight: 700;
+      font-size: 2rem;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .transactions-list {
+      overflow-x: auto;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      background: var(--color-card-bg);
+      color: var(--color-primary);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+    th, td {
+      padding: 16px 12px;
+      text-align: left;
+      font-size: 1rem;
+      vertical-align: middle;
+      border-bottom: 1px solid #eaeaea;
+      user-select:none;
+    }
+    th {
+      background: #f3f4f6;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      color: #333;
+    }
+    td.actions {
+      width: 110px;
+      text-align: center;
+      user-select:none;
+    }
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      justify-items: center;
+    }
+    canvas {
+      width: 100% !important;
+      max-width: 420px;
+      height: 400px !important;
+      user-select:none;
+      border-radius: var(--border-radius);
+      background: white;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+    button.action-btn {
+      all: unset;
+      cursor: pointer;
+      padding: 6px 8px;
+      margin: 0 4px;
+      border-radius: 8px;
+      transition: background-color 0.25s ease;
+      color: var(--color-accent);
+      font-size: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    button.action-btn:hover,
+    button.action-btn:focus {
+      background: rgba(79, 70, 229, 0.15);
+      outline: none;
+    }
+    /* Modal Styles */
+    #editModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right:0; bottom:0;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #editModal.active {
+      display: flex;
+    }
+    #editModal .modal-content {
+      background: rgba(255 255 255 / 0.15);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: var(--border-radius);
+      padding: 24px 32px;
+      max-width: 520px;
+      width: 100%;
+      color: white;
+      position: relative;
+      box-shadow: var(--shadow-glass);
+    }
+    #editModal .modal-content h3 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+    #editModal label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      user-select:none;
+    }
+    #editModal input, 
+    #editModal select {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--border-radius);
+      border: none;
+      background: rgba(255 255 255 / 0.3);
+      color: white;
+      font-size: 1rem;
+      font-family: var(--font-family);
+      margin-bottom: 18px;
+      box-sizing: border-box;
+    }
+    #editModal input:focus,
+    #editModal select:focus {
+      outline: none;
+      background: rgba(255 255 255 / 0.5);
+      box-shadow: inset 0 0 10px rgba(255 255 255 / 0.6);
+      color: #222;
+    }
+    #editModal .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+    #editModal button {
+      all: unset;
+      cursor: pointer;
+      padding: 12px 28px;
+      border-radius: var(--border-radius);
+      font-weight: 700;
+      user-select:none;
+      box-shadow: 0 6px 14px rgba(139, 92, 246, 0.6);
+      text-align: center;
+      transition: background 0.3s ease;
+    }
+    #editModal button.save-btn {
+      background: #22c55e;
+      color: white;
+    }
+    #editModal button.save-btn:hover,
+    #editModal button.save-btn:focus {
+      background: #16a34a;
+      outline: none;
+    }
+    #editModal button.cancel-btn {
+      background: #ef4444;
+      color: white;
+    }
+    #editModal button.cancel-btn:hover,
+    #editModal button.cancel-btn:focus {
+      background: #b91c1c;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <header aria-label="Site header">
+    <h1>Transactions & Visual Summary</h1>
+    <button id="btn-back" class="btn-back" aria-label="Go back to main page">Back</button>
+  </header>
+
+  <main class="container" role="main" aria-label="Transactions and visual summary section">
+    <section class="card" aria-labelledby="transactions-title">
+      <h2 id="transactions-title">Transactions</h2>
+      <div class="transactions-list" role="region" aria-live="polite" aria-relevant="additions removals">
+        <table aria-label="List of financial transactions" id="transactions-table">
+          <thead>
+            <tr>
+              <th scope="col">Type</th>
+              <th scope="col">Category</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Date</th>
+              <th scope="col">Description</th>
+              <th scope="col" class="actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="transactions-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="summary-title">
+      <h2 id="summary-title">Visual Summary</h2>
+      <div class="charts">
+        <canvas id="incomeExpensePieChart" aria-label="Pie chart showing income and expenses" role="img"></canvas>
+        <canvas id="savingsOverTimeChart" aria-label="Line chart showing savings over time" role="img"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <!-- Edit Transaction Modal -->
+  <div id="editModal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle" tabindex="-1">
+    <div class="modal-content">
+      <h3 id="editModalTitle">Edit Transaction</h3>
+      <form id="edit-transaction-form" novalidate autocomplete="off">
+        <label for="edit-type-select">Transaction Type</label>
+        <select id="edit-type-select" name="type" required>
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
+        </select>
+
+        <label for="edit-category">Category</label>
+        <select id="edit-category" name="category" required>
+          <!-- Options populated dynamically -->
+        </select>
+
+        <label for="edit-amount">Amount</label>
+        <input type="number" id="edit-amount" name="amount" min="0.01" step="0.01" placeholder="0.00" required />
+
+        <label for="edit-date">Date</label>
+        <input type="date" id="edit-date" name="date" required />
+
+        <label for="edit-description">Description</label>
+        <input type="text" id="edit-description" name="description" maxlength="50" placeholder="Optional notes" />
+
+        <div style="display:flex; justify-content:flex-end; gap: 16px; margin-top: 12px;">
+          <button type="button" class="cancel-btn">Cancel</button>
+          <button type="submit" class="save-btn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    "A budget is telling your money where to go instead of wondering where it went." — Dave Ramsey
+  </footer>
+
+  <script>
+    const STORAGE_CURRENT_USER_KEY = 'financeTrackerCurrentUser';
+
+    const btnBack = document.getElementById('btn-back');
+    btnBack.addEventListener('click', () => {
+      window.location.href = 'main.html';
+    });
+
+    const currentUser = localStorage.getItem(STORAGE_CURRENT_USER_KEY);
+    if (!currentUser) {
+      window.location.href = 'login.html';
+    }
+
+    const STORAGE_TRANSACTIONS_KEY = `financeTrackerTransactions_${currentUser}`;
+    const transactionsTbody = document.getElementById('transactions-tbody');
+
+    let incomeExpensePieChart = null;
+    let savingsOverTimeChart = null;
+    let transactions = [];
+
+    // Modal elements
+    const editModal = document.getElementById('editModal');
+    const editForm = document.getElementById('edit-transaction-form');
+    const editTypeSelect = document.getElementById('edit-type-select');
+    const editCategorySelect = document.getElementById('edit-category');
+    const editAmountInput = document.getElementById('edit-amount');
+    const editDateInput = document.getElementById('edit-date');
+    const editDescriptionInput = document.getElementById('edit-description');
+    const cancelBtn = editForm.querySelector('.cancel-btn');
+    
+    // Category options
+    const categoriesByType = {
+      income: ['Salary', 'Business', 'Gift', 'Interest', 'Other'],
+      expense: ['Food', 'Travel', 'Bills', 'Entertainment', 'Health', 'Other']
+    };
+
+    let editTransactionId = null;
+
+    function loadTransactions() {
+      const stored = localStorage.getItem(STORAGE_TRANSACTIONS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    }
+
+    function saveTransactions() {
+      localStorage.setItem(STORAGE_TRANSACTIONS_KEY, JSON.stringify(transactions));
+    }
+
+    function formatCurrency(value) {
+      return value.toLocaleString(undefined, { style: 'currency', currency: 'INR', minimumFractionDigits: 2 });
+    }
+
+    function renderTransactions() {
+      transactionsTbody.innerHTML = '';
+      if(transactions.length === 0){
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="6" style="text-align:center; color: #666;">No transactions found</td>';
+        transactionsTbody.appendChild(tr);
+        return;
+      }
+      transactions.forEach(tx => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="color:${tx.type === 'income' ? 'green' : 'crimson'}">${tx.type.charAt(0).toUpperCase() + tx.type.slice(1)}</td>
+          <td>${tx.category}</td>
+          <td>${formatCurrency(tx.amount)}</td>
+          <td>${new Date(tx.date).toLocaleDateString()}</td>
+          <td>${tx.description || ''}</td>
+          <td class="actions">
+            <button class="action-btn edit-btn" title="Edit transaction" aria-label="Edit transaction ${tx.category} ${formatCurrency(tx.amount)}">
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+            <button class="action-btn delete-btn" title="Delete transaction" aria-label="Delete transaction ${tx.category} ${formatCurrency(tx.amount)}">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </td>
+        `;
+        // Edit button handler
+        tr.querySelector('.edit-btn').addEventListener('click', () => openEditModal(tx.id));
+        // Delete button handler
+        tr.querySelector('.delete-btn').addEventListener('click', () => {
+          if(confirm('Are you sure you want to delete this transaction?')) {
+            transactions = transactions.filter(t => t.id !== tx.id);
+            saveTransactions();
+            updateUI();
+          }
+        });
+        transactionsTbody.appendChild(tr);
+      });
+    }
+
+    function calculateTotals() {
+      let totalIncome = 0;
+      let totalExpenses = 0;
+      transactions.forEach(tx => {
+        if (tx.type === 'income') {
+          totalIncome += tx.amount;
+        } else if (tx.type === 'expense') {
+          totalExpenses += tx.amount;
+        }
+      });
+      return { totalIncome, totalExpenses };
+    }
+
+    function calculateSavingsOverTime() {
+      const dailyNetMap = {};
+      transactions.forEach(tx => {
+        const dateKey = new Date(tx.date).toISOString().slice(0,10);
+        if (!dailyNetMap[dateKey]) dailyNetMap[dateKey] = 0;
+        dailyNetMap[dateKey] += tx.type === 'income' ? tx.amount : -tx.amount;
+      });
+      const sortedDates = Object.keys(dailyNetMap).sort();
+      let runningTotal = 0;
+      const labels = [];
+      const data = [];
+      sortedDates.forEach(date => {
+        runningTotal += dailyNetMap[date];
+        labels.push(new Date(date).toLocaleDateString());
+        data.push(Number(runningTotal.toFixed(2)));
+      });
+      return { labels, data };
+    }
+
+    function updateIncomeExpensePieChart(totalIncome, totalExpenses) {
+      if (incomeExpensePieChart) incomeExpensePieChart.destroy();
+      const ctx = document.getElementById('incomeExpensePieChart').getContext('2d');
+      incomeExpensePieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Income', 'Expenses'],
+          datasets: [{
+            data: [totalIncome, totalExpenses],
+            backgroundColor: ['#22c55e', '#ef4444'], 
+            borderColor: '#fff',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#222', font: { size: 14, weight: '600' } } },
+            tooltip: { enabled: true, mode: 'nearest' }
+          }
+        }
+      });
+    }
+
+    function updateSavingsOverTimeChart(labels, data) {
+      if (savingsOverTimeChart) savingsOverTimeChart.destroy();
+      const ctx = document.getElementById('savingsOverTimeChart').getContext('2d');
+      savingsOverTimeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Savings Over Time',
+            data,
+            fill: true,
+            backgroundColor: 'rgba(34, 197, 94, 0.25)',
+            borderColor: '#22c55e',
+            borderWidth: 2,
+            pointRadius: 3,
+            pointBackgroundColor: '#22c55e',
+            tension: 0.3,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              labels: { color: '#222', font: { size: 14, weight: '600' } }
+            },
+            tooltip: { enabled: true, mode: 'nearest' }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: v => '₹' + v.toLocaleString()
+              },
+              grid: {
+                drawBorder: false
+              }
+            },
+            x: {
+              grid: {
+                drawBorder: false,
+                display: false,
+              },
+            }
+          }
+        }
+      });
+    }
+
+    // Populate categories for the edit modal
+    function populateEditCategories(type) {
+      editCategorySelect.innerHTML = '';
+      categoriesByType[type].forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        editCategorySelect.appendChild(option);
+      });
+    }
+
+    // Open the edit modal and populate fields
+    function openEditModal(transactionId) {
+      const tx = transactions.find(t => t.id === transactionId);
+      if (!tx) return;
+
+      editTransactionId = tx.id;
+
+      editTypeSelect.value = tx.type;
+      populateEditCategories(tx.type);
+      editCategorySelect.value = tx.category;
+      editAmountInput.value = tx.amount;
+      editDateInput.value = tx.date;
+      editDescriptionInput.value = tx.description || '';
+
+      editModal.classList.add('active');
+      editModal.focus();
+    }
+
+    // Close the edit modal
+    function closeEditModal() {
+      editModal.classList.remove('active');
+      editTransactionId = null;
+      editForm.reset();
+    }
+
+    // Update UI after data changes
+    function updateUI() {
+      renderTransactions();
+      const { totalIncome, totalExpenses } = calculateTotals();
+      updateIncomeExpensePieChart(totalIncome, totalExpenses);
+
+      const savingsData = calculateSavingsOverTime();
+      updateSavingsOverTimeChart(savingsData.labels, savingsData.data);
+    }
+
+    // Event listeners for modal form
+    editTypeSelect.addEventListener('change', () => {
+      populateEditCategories(editTypeSelect.value);
+    });
+
+    editForm.addEventListener('submit', e => {
+      e.preventDefault();
+
+      // Validation
+      const type = editTypeSelect.value;
+      const category = editCategorySelect.value;
+      const amount = parseFloat(editAmountInput.value);
+      const date = editDateInput.value;
+      const description = editDescriptionInput.value.trim();
+
+      if (!category) {
+        alert('Please select a category.');
+        return;
+      }
+      if (!amount || amount <= 0) {
+        alert('Please enter a valid amount.');
+        return;
+      }
+      if (!date) {
+        alert('Please select a valid date.');
+        return;
+      }
+
+      // Update the transaction
+      const idx = transactions.findIndex(t => t.id === editTransactionId);
+      if (idx !== -1) {
+        transactions[idx] = {
+          id: editTransactionId,
+          type,
+          category,
+          amount,
+          date,
+          description
+        };
+        saveTransactions();
+        updateUI();
+        closeEditModal();
+      } else {
+        alert('Transaction not found.');
+      }
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      closeEditModal();
+    });
+
+    // Close modal on outside click or ESC key
+    editModal.addEventListener('click', (e) => {
+      if (e.target === editModal) {
+        closeEditModal();
+      }
+    });
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && editModal.classList.contains('active')) {
+        closeEditModal();
+      }
+    });
+
+    // Initialization on page load
+    function initialize() {
+      transactions = loadTransactions();
+      updateUI();
+    }
+
+    initialize();
+
+  </script>
+</body>
+</html>
+

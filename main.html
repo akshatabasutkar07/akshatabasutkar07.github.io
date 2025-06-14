@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Personal Finance Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Dynamic animated gradient background */
+    @keyframes gradientAnimation {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    :root {
+      --color-primary: #222222;
+      --color-secondary: #d1d5db;
+      --color-accent: #4f46e5;
+      --color-bg-gradient: linear-gradient(270deg, #667eea, #764ba2, #667eea, #764ba2);
+      --font-family: 'Inter', sans-serif;
+      --border-radius: 20px;
+      --transition-fast: 0.3s ease;
+      --footer-bg: rgba(255 255 255 / 0.1);
+      --footer-text: #e0dbf5;
+      --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: var(--font-family);
+      background: var(--color-bg-gradient);
+      background-size: 400% 400%;
+      animation: gradientAnimation 15s ease infinite;
+      display: flex;
+      flex-direction: column;
+      color: var(--color-secondary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    header {
+      background: rgba(255 255 255 / 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      box-shadow: var(--shadow-glass);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      user-select: none;
+      z-index: 10;
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: 1px;
+      border-radius: 0 0 20px 20px;
+    }
+
+    header .btn-logout {
+      all: unset;
+      cursor: pointer;
+      background: #8b5cf6;
+      color: white;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 6px 14px rgba(139, 92, 246, 0.6);
+      transition: background 0.4s ease;
+    }
+    header .btn-logout:hover,
+    header .btn-logout:focus {
+      background: #7c3aed;
+      outline: none;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin: 24px 0;
+    }
+
+    .nav-buttons button {
+      all: unset;
+      cursor: pointer;
+      background: #8b5cf6;
+      color: white;
+      font-weight: 700;
+      border-radius: var(--border-radius);
+      padding: 14px 40px;
+      text-transform: uppercase;
+      font-size: 1rem;
+      box-shadow: 0 6px 14px rgba(139,92,246,0.6);
+      user-select:none;
+      transition: background 0.4s ease;
+      text-align: center;
+    }
+    .nav-buttons button:hover,
+    .nav-buttons button:focus {
+      background: #7c3aed;
+      outline: none;
+    }
+
+    main.container {
+      flex: 1;
+      max-width: 700px;
+      margin: 0 auto 0 auto;
+      background: rgba(255 255 255 / 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: var(--border-radius);
+      padding: 32px 40px;
+      box-shadow: var(--shadow-glass);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      user-select:none;
+    }
+
+    form {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(6, 1fr);
+      align-items: end;
+    }
+
+    label {
+      font-weight: 700;
+      user-select:none;
+    }
+
+    select,
+    input[type="number"],
+    input[type="text"],
+    input[type="date"] {
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: var(--border-radius);
+      border: none;
+      background: rgba(255 255 255 / 0.3);
+      color: white;
+      font-family: var(--font-family);
+      font-size: 1.1rem;
+      box-sizing: border-box;
+      transition: background 0.3s ease;
+      /* Increased padding and font-size for better touch and visibility */
+    }
+
+    /* Bigger amount input box styling */
+    #amount {
+      grid-column: span 2;
+      font-size: 1.4rem;
+      padding: 18px 24px;
+    }
+
+    select:focus,
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    input[type="date"]:focus {
+      outline: none;
+      background: rgba(255 255 255 / 0.5);
+      box-shadow: inset 0 0 10px rgba(255 255 255 / 0.6);
+      color: #222;
+    }
+
+    button[type="submit"] {
+      all: unset;
+      cursor: pointer;
+      background: #8b5cf6;
+      padding: 16px 40px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border-radius: var(--border-radius);
+      color: white;
+      user-select:none;
+      box-shadow: 0 6px 14px rgba(139, 92, 246, 0.6);
+      justify-self: end;
+      text-align: center;
+      transition: background 0.4s ease;
+      grid-column: span 2;
+    }
+
+    button[type="submit"]:hover,
+    button[type="submit"]:focus {
+      background: #7c3aed;
+      outline: none;
+    }
+
+    #form-error {
+      grid-column: span 6;
+      color: #fb7185;
+      font-weight: 600;
+      margin-top: 4px;
+      text-align: center;
+      display: none;
+      user-select:none;
+      text-shadow: 0 0 10px rgba(251,113,133,0.8);
+    }
+
+    .budget-savings {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 32px;
+    }
+
+    .budget-goal {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      color: white;
+    }
+
+    .progress-bar-wrapper {
+      width: 100%;
+      background: rgba(255 255 255 / 0.3);
+      border-radius: 10px;
+      height: 20px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #a78bfa;
+      width: 0;
+      transition: width 0.6s ease;
+      border-radius: 10px 0 0 10px;
+    }
+
+    /* Budget bar has distinct purple color */
+    .progress-bar.budget {
+      background: #a78bfa;
+    }
+    /* Savings bar uses green */
+    .progress-bar.savings {
+      background: #22c55e;
+    }
+
+    #budget-status, #savings-status {
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    footer {
+      margin-top: auto;
+      background: var(--footer-bg);
+      color: var(--footer-text);
+      font-style: italic;
+      font-weight: 600;
+      text-align: center;
+      padding: 20px 16px;
+      user-select: none;
+      border-top: 1px solid rgba(255 255 255 / 0.1);
+      font-size: 1.1rem;
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <header aria-label="Site header">
+    <h1>Personal Finance Tracker</h1>
+    <button type="button" id="btn-logout" aria-label="Logout user" class="btn-logout">Logout</button>
+  </header>
+
+  <nav class="nav-buttons" aria-label="Navigation buttons">
+    <button type="button" id="btn-go-transactions" aria-label="Go to transactions and visual summary page">Transactions & Summary</button>
+  </nav>
+
+  <main class="container" role="main" aria-label="Personal finance tracker application">
+
+    <section aria-labelledby="add-transaction-title" id="section-add-transaction">
+      <h2 id="add-transaction-title">Add Transaction</h2>
+      <form id="transaction-form" novalidate autocomplete="off" aria-describedby="form-error">
+        <div>
+          <label for="type-select">Transaction Type</label>
+          <select id="type-select" name="type" required aria-required="true">
+            <option value="income" selected>Income</option>
+            <option value="expense">Expense</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="category">Category</label>
+          <select id="category" name="category" required aria-required="true" aria-describedby="category-desc">
+            <option disabled value="">Select category</option>
+          </select>
+          <div id="category-desc" class="sr-only">Select transaction category</div>
+        </div>
+
+        <div>
+          <label for="amount">Amount</label>
+          <input type="number" id="amount" name="amount" min="0.01" step="0.01" placeholder="0.00" required aria-required="true" aria-describedby="amount-desc" />
+          <div id="amount-desc" class="sr-only">Enter amount in your currency</div>
+        </div>
+
+        <div>
+          <label for="date">Date</label>
+          <input type="date" id="date" name="date" required aria-required="true" aria-describedby="date-desc" />
+          <div id="date-desc" class="sr-only">Select the date of transaction</div>
+        </div>
+
+        <div>
+          <label for="description">Description</label>
+          <input type="text" id="description" name="description" maxlength="50" placeholder="Optional notes" aria-describedby="description-desc" />
+          <div id="description-desc" class="sr-only">Add an optional description or notes for this transaction</div>
+        </div>
+
+        <button type="submit" aria-label="Submit transaction">Add Transaction</button>
+        <div id="form-error" role="alert" aria-live="assertive"></div>
+      </form>
+    </section>
+
+    <section aria-labelledby="budget-savings-title" id="section-budget-savings">
+      <h2 id="budget-savings-title">Budget & Savings Goals</h2>
+      <div class="budget-savings">
+        <div class="budget-goal">
+          <label for="budget-limit">Monthly Budget Limit</label>
+          <input type="number" id="budget-limit" min="0" step="0.01" placeholder="Set your monthly budget (₹)" aria-describedby="budget-limit-desc" />
+          <div id="budget-limit-desc" class="sr-only">Set a monthly budget limit to track against expenses</div>
+          <div class="progress-bar-wrapper" aria-hidden="true">
+            <div class="progress-bar budget" id="budget-progress"></div>
+          </div>
+          <div id="budget-status" aria-live="polite"></div>
+        </div>
+
+        <div class="budget-goal">
+          <label for="savings-goal">Monthly Savings Goal</label>
+          <input type="number" id="savings-goal" min="0" step="0.01" placeholder="Set your savings goal (₹)" aria-describedby="savings-goal-desc" />
+          <div id="savings-goal-desc" class="sr-only">Set a monthly savings goal to track your income minus expenses</div>
+          <div class="progress-bar-wrapper" aria-hidden="true">
+            <div class="progress-bar savings" id="savings-progress"></div>
+          </div>
+          <div id="savings-status" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    "Wealth consists not in having great possessions, but in having few wants." — Epictetus
+  </footer>
+
+  <script>
+    const STORAGE_CURRENT_USER_KEY = 'financeTrackerCurrentUser';
+
+    window.addEventListener('load', () => {
+      const currentUser = localStorage.getItem(STORAGE_CURRENT_USER_KEY);
+      if (!currentUser) {
+        window.location.href = 'login.html';
+        return;
+      }
+      initializeUser(currentUser);
+    });
+
+    const logoutBtn = document.getElementById('btn-logout');
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_CURRENT_USER_KEY);
+      window.location.href = 'login.html';
+    });
+
+    document.getElementById('btn-go-transactions').addEventListener('click', () => {
+      window.location.href = 'transactions-summary.html';
+    });
+
+    let currentUser = null;
+    let STORAGE_TRANSACTIONS_KEY = null;
+    let STORAGE_BUDGET_KEY = null;
+    let STORAGE_SAVINGS_KEY = null;
+
+    const form = document.getElementById('transaction-form');
+    const typeSelect = document.getElementById('type-select');
+    const categorySelect = document.getElementById('category');
+    const amountInput = form.amount;
+    const dateInput = form.date;
+    const descriptionInput = form.description;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const formError = document.getElementById('form-error');
+
+    const budgetLimitInput = document.getElementById('budget-limit');
+    const savingsGoalInput = document.getElementById('savings-goal');
+    const budgetProgressBar = document.getElementById('budget-progress');
+    const savingsProgressBar = document.getElementById('savings-progress');
+    const budgetStatus = document.getElementById('budget-status');
+    const savingsStatus = document.getElementById('savings-status');
+
+    const categoriesByType = {
+      income: ['Salary', 'Business', 'Gift', 'Interest', 'Other'],
+      expense: ['Food', 'Travel', 'Bills', 'Entertainment', 'Health', 'Other']
+    };
+
+    let transactions = [];
+    let isEditing = false;
+    let editId = null;
+    let budgetLimit = 0;
+    let savingsGoal = 0;
+
+    function initializeUser(username) {
+      currentUser = username;
+      STORAGE_TRANSACTIONS_KEY = `financeTrackerTransactions_${currentUser}`;
+      STORAGE_BUDGET_KEY = `financeTrackerBudgetLimit_${currentUser}`;
+      STORAGE_SAVINGS_KEY = `financeTrackerSavingsGoal_${currentUser}`;
+
+      loadData();
+      populateCategories(typeSelect.value);
+      updateBudgetAndSavings();
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_TRANSACTIONS_KEY, JSON.stringify(transactions));
+      localStorage.setItem(STORAGE_BUDGET_KEY, budgetLimit);
+      localStorage.setItem(STORAGE_SAVINGS_KEY, savingsGoal);
+      updateBudgetAndSavings();
+    }
+
+    function loadData() {
+      const storedTransactions = localStorage.getItem(STORAGE_TRANSACTIONS_KEY);
+      transactions = storedTransactions ? JSON.parse(storedTransactions) : [];
+
+      const storedBudgetLimit = localStorage.getItem(STORAGE_BUDGET_KEY);
+      budgetLimit = storedBudgetLimit ? parseFloat(storedBudgetLimit) : 0;
+
+      const storedSavingsGoal = localStorage.getItem(STORAGE_SAVINGS_KEY);
+      savingsGoal = storedSavingsGoal ? parseFloat(storedSavingsGoal) : 0;
+
+      budgetLimitInput.value = budgetLimit > 0 ? budgetLimit : '';
+      savingsGoalInput.value = savingsGoal > 0 ? savingsGoal : '';
+    }
+
+    function populateCategories(type) {
+      categorySelect.innerHTML = '<option disabled value="">Select category</option>';
+      categoriesByType[type].forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        categorySelect.appendChild(option);
+      });
+      categorySelect.value = '';
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      formError.style.display = 'none';
+      if (!categorySelect.value) {
+        formError.textContent = 'Please select a category.';
+        formError.style.display = 'block';
+        return;
+      }
+      if (!amountInput.value || Number(amountInput.value) <= 0) {
+        formError.textContent = 'Please enter a valid amount greater than zero.';
+        formError.style.display = 'block';
+        return;
+      }
+      if (!dateInput.value) {
+        formError.textContent = 'Please select a valid date.';
+        formError.style.display = 'block';
+        return;
+      }
+
+      const type = typeSelect.value;
+      const category = categorySelect.value;
+      const amount = parseFloat(amountInput.value);
+      const date = dateInput.value;
+      const description = descriptionInput.value.trim();
+
+      if (isEditing && editId) {
+        const idx = transactions.findIndex(t => t.id === editId);
+        if (idx !== -1) {
+          transactions[idx] = { id: editId, type, category, amount, date, description };
+        }
+      } else {
+        transactions.push({
+          id: '_' + Math.random().toString(36).substr(2, 9),
+          type,
+          category,
+          amount,
+          date,
+          description
+        });
+      }
+
+      saveData();
+      resetForm();
+    });
+
+    form.reset();
+    populateCategories(typeSelect.value);
+
+    function resetForm() {
+      form.reset();
+      populateCategories(typeSelect.value);
+      submitBtn.textContent = 'Add Transaction';
+      formError.style.display = 'none';
+      isEditing = false;
+      editId = null;
+    }
+
+    typeSelect.addEventListener('change', () => {
+      populateCategories(typeSelect.value);
+    });
+
+    budgetLimitInput.addEventListener('input', e => {
+      const val = parseFloat(e.target.value);
+      budgetLimit = !isNaN(val) && val >= 0 ? val : 0;
+      saveData();
+    });
+
+    savingsGoalInput.addEventListener('input', e => {
+      const val = parseFloat(e.target.value);
+      savingsGoal = !isNaN(val) && val >= 0 ? val : 0;
+      saveData();
+    });
+
+    function calculateExpenses() {
+      return transactions.reduce((acc, tx) => tx.type === 'expense' ? acc + tx.amount : acc, 0);
+    }
+    function calculateIncome() {
+      return transactions.reduce((acc, tx) => tx.type === 'income' ? acc + tx.amount : acc, 0);
+    }
+
+    function updateBudgetAndSavings() {
+      const totalExpenses = calculateExpenses();
+      const totalIncome = calculateIncome();
+
+      // Budget limit progress (expense vs budget)
+      if (budgetLimit > 0) {
+        let budgetPercent = (totalExpenses / budgetLimit) * 100;
+        if (budgetPercent > 100) budgetPercent = 100;
+        budgetProgressBar.style.width = budgetPercent + '%';
+        budgetStatus.textContent = `Used: ₹${totalExpenses.toFixed(2)} / ₹${budgetLimit.toFixed(2)} (${budgetPercent.toFixed(0)}%)`;
+        if (budgetPercent >= 100) budgetStatus.style.color = '#fb7185'; // red
+        else budgetStatus.style.color = '#86efac'; // green
+      } else {
+        budgetProgressBar.style.width = '0%';
+        budgetStatus.textContent = 'No budget limit set';
+        budgetStatus.style.color = 'white';
+      }
+
+      // Savings goal progress ((income - expenses) vs savings goal)
+      if (savingsGoal > 0) {
+        const savedAmount = totalIncome - totalExpenses;
+        let savingsPercent = (savedAmount / savingsGoal) * 100;
+        if (savingsPercent < 0) savingsPercent = 0;
+        if (savingsPercent > 100) savingsPercent = 100;
+        savingsProgressBar.style.width = savingsPercent + '%';
+        savingsStatus.textContent = `Saved: ₹${savedAmount.toFixed(2)} / ₹${savingsGoal.toFixed(2)} (${savingsPercent.toFixed(0)}%)`;
+        if (savedAmount < 0) savingsStatus.style.color = '#fb7185'; // red
+        else savingsStatus.style.color = '#86efac'; // green
+      } else {
+        savingsProgressBar.style.width = '0%';
+        savingsStatus.textContent = 'No savings goal set';
+        savingsStatus.style.color = 'white';
+      }
+    }
+
+  </script>
+  <style>
+    /* Screen reader only */
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+  </style>
+</body>
+</html>
+
